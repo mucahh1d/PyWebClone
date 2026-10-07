@@ -7,14 +7,7 @@ from urllib.parse import urljoin, urlparse, unquote
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from playwright.sync_api import sync_playwright
 
-# ------------------------------------------------------------------------------
-# PROFESYONEL LOG AYARLARI
-# ------------------------------------------------------------------------------
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(levelname)-8s | %(message)s'
-)
-
+logging.basicConfig(level=logging.INFO, format='%(levelname)-8s | %(message)s')
 
 class UltraProfesyonelKlonlayici:
     def __init__(self, url):
@@ -22,7 +15,6 @@ class UltraProfesyonelKlonlayici:
         self.domain = urlparse(self.url).netloc.replace('www.', '')
         self.base_dir = f"klon_{self.domain}"
 
-        # Varlıkları hızlı indirmek için Session
         self.session = requests.Session()
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
@@ -41,7 +33,7 @@ class UltraProfesyonelKlonlayici:
         ]
         for d in dirs:
             os.makedirs(d, exist_ok=True)
-        logging.info(f"Klasör yapısı oluşturuldu: '{self.base_dir}'")
+        logging.info(f"Klasör: '{self.base_dir}'")
 
     def guvenli_dosya_adi(self, url):
         parsed = urlparse(url)
@@ -80,46 +72,37 @@ class UltraProfesyonelKlonlayici:
             return None
 
     def baslat(self):
-        logging.info(f"Hedef URL: {self.url}")
+        logging.info(f"Hedef: {self.url}")
         self.klasor_hazirla()
 
-        # 1. ADIM: Playwright ile sayfayı gerçek bir tarayıcı gibi aç ve JS'in yüklenmesini bekle
-        logging.info("Tarayıcı başlatılıyor ve sayfa tamamen yükleniyor bekleniyor...")
         rendered_html = ""
         try:
             with sync_playwright() as p:
                 browser = p.chromium.launch(headless=True)
                 page = browser.new_page()
-                # networkidle: Ağ istekleri bitene kadar bekler (JS ve dinamik içerik için kritik)
                 page.goto(self.url, wait_until='networkidle', timeout=30000)
                 rendered_html = page.content()
                 browser.close()
         except Exception as e:
-            logging.error(f"Tarayıcı ile sayfa yüklenemedi: {e}")
+            logging.error(f"Hata: {e}")
             return
 
-        # 2. ADIM: Render edilmiş HTML'i BeautifulSoup ile parse et
         soup = BeautifulSoup(rendered_html, 'html.parser')
         islemler = []
 
-        # CSS Dosyaları
         for link in soup.find_all('link', rel='stylesheet'):
             href = link.get('href')
             if href: islemler.append((urljoin(self.url, href), 'css', link, 'href'))
 
-        # JavaScript Dosyaları
         for script in soup.find_all('script', src=True):
             src = script.get('src')
             if src: islemler.append((urljoin(self.url, src), 'js', script, 'src'))
 
-        # Resimler (Lazy Load ve Srcset desteği ile)
         for img in soup.find_all('img'):
-            # Önce data-src (lazy load) kontrol et, yoksa normal src'ye bak
             src = img.get('data-src') or img.get('data-lazy-src') or img.get('src')
             if src:
                 islemler.append((urljoin(self.url, src), 'img', img, 'src'))
 
-            # Srcset desteği (Responsive resimler)
             srcset = img.get('srcset')
             if srcset:
                 for srcset_item in srcset.split(','):
@@ -127,13 +110,10 @@ class UltraProfesyonelKlonlayici:
                     if srcset_url:
                         islemler.append((urljoin(self.url, srcset_url), 'img', img, 'srcset'))
 
-        # Favicon / İkonlar
-        for icon in soup.find_all('link',
-                                  rel=lambda x: x in ['icon', 'shortcut icon', 'apple-touch-icon'] if x else False):
+        for icon in soup.find_all('link', rel=lambda x: x in ['icon', 'shortcut icon', 'apple-touch-icon'] if x else False):
             href = icon.get('href')
             if href: islemler.append((urljoin(self.url, href), 'icon', icon, 'href'))
 
-        # Benzersiz URL'leri filtrele (Aynı dosyayı iki kez indirmemek için)
         benzersiz_islemler = []
         seen_urls = set()
         for item in islemler:
@@ -141,9 +121,8 @@ class UltraProfesyonelKlonlayici:
                 seen_urls.add(item[0])
                 benzersiz_islemler.append(item)
 
-        logging.info(f"Toplam {len(benzersiz_islemler)} adet benzersiz varlık indirilecek...")
+        logging.info(f"İndirilecek: {len(benzersiz_islemler)} varlık")
 
-        # 3. ADIM: Eşzamanlı Hızlı İndirme
         basarili_sayisi = 0
         with ThreadPoolExecutor(max_workers=10) as executor:
             future_to_tag = {
@@ -156,19 +135,15 @@ class UltraProfesyonelKlonlayici:
                 try:
                     yerel_yol = future.result()
                     if yerel_yol:
-                        if attr == 'srcset':
-                            pass
-                        else:
+                        if attr != 'srcset':
                             tag[attr] = yerel_yol
                         basarili_sayisi += 1
                 except Exception:
                     pass
 
-        logging.info(f"{basarili_sayisi} adet varlık başarıyla indirildi ve bağlantılar güncellendi.")
+        logging.info(f"Tamamlandı: {basarili_sayisi} varlık")
 
-        # 4. ADIM: İmza Enjeksiyonu
         imza_html = """
-        <!-- Designed by mucahidbalci -->
         <footer style="position: fixed; bottom: 0; width: 100%; background: rgba(0,0,0,0.85); color: #00ff00; text-align: center; padding: 12px 0; font-family: 'Courier New', monospace; font-size: 14px; border-top: 2px solid #00ff00; z-index: 99999; backdrop-filter: blur(4px);">
             Designed by <strong>mucahidbalci</strong> | 
             <a href="https://mucahidinc.freedev.app" style="color: #00ffff; text-decoration: none; font-weight: bold; transition: color 0.3s;" onmouseover="this.style.color='#ffffff'" onmouseout="this.style.color='#00ffff'">mucahidinc.freedev.app</a>
@@ -181,20 +156,16 @@ class UltraProfesyonelKlonlayici:
         else:
             soup.html.append(BeautifulSoup(imza_html, 'html.parser'))
 
-        # 5. ADIM: Kaydet
         html_yolu = os.path.join(self.base_dir, 'index.html')
         with open(html_yolu, 'w', encoding='utf-8') as f:
             f.write(str(soup))
 
-        logging.info(f"KLONLAMA TAMAMLANDI! Dosyalar: '{self.base_dir}' klasöründe.")
-        logging.info(f"Görmek için: {html_yolu} dosyasını tarayıcında aç.")
+        logging.info(f"Bitti: '{self.base_dir}' klasöründe.")
 
 
 if __name__ == "__main__":
-    print("\nYASAL UYARI: Bu araç sadece kendi web sitelerinizi arşivlemek, eğitim ve izinli test amaçlıdır.\n")
-
-    # İstenilen güncelleme yapıldı
-    hedef_url = input("Hedef siteyi girin (örn: https://example.com): ").strip()
+    print("\nUYARI: Sadece eğitim ve izinli test amaçlıdır.\n")
+    hedef_url = input("Hedef siteyi girin: ").strip()
 
     if not hedef_url:
         logging.error("URL boş olamaz!")
