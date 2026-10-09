@@ -1,58 +1,95 @@
-# PyWebClone - Advanced Dynamic Web Mirroring & OSINT Forensic Tool
+# 🕷️ PyWebClone Pro
 
-PyWebClone; sızma testleri (penetrasyon testleri), siber tehdit istihbaratı (OSINT) ve adli bilişim (forensic) süreçlerinde hedef web sitelerinin statik mimarilerini, tüm varlıkları (assets) ve dinamik içerikleriyle birlikte çevrimdışı (offline) ortamlarda analiz etmek amacıyla geliştirilmiş **üst düzey bir web kopyalama ve otomasyon aracıdır**.
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/mucahidbalci/PyWebClone?style=social)](https://github.com/mucahidbalci/PyWebClone)
 
-Sıradan kopyalayıcıların aksine; modern JavaScript framework'leri (React, Vue, Next.js vb.) ile yazılmış dinamik web sitelerini tam uyumlu şekilde simüle eder ve güvenli bir şekilde yerel ortama aktarır.
+Enterprise-grade web cloning and archiving tool. Renders JavaScript, bypasses bot protection, and downloads complete websites with all assets intact.
 
-## 🚀 Öne Çıkan Gelişmiş Özellikler
+⭐ **If you like this project, please give it a star!**
 
-* **🧠 Dinamik İçerik & JavaScript Desteği (Playwright):** Arka planda Headless Chrome (Gizli Tarayıcı) açarak sayfadaki tüm JavaScript döngülerinin tamamlanmasını ve API isteklerinin (networkidle) yüklenmesini bekler. Modern SPA (Single Page Application) siteleri kusursuzca klonlar.
-* **⚡ Süper Hızlı Eşzamanlı İndirme (Concurrency):** `ThreadPoolExecutor` mimarisi kullanarak tüm asset dosyalarını paralel olarak 10 koldan indirir. Zaman yönetimini optimize ederek indirme sürelerini %90 oranında kısaltır.
-* **🔗 Akıllı URL Dönüşümü (Local URL Rewriting):** İndirilen tüm varlıkların (`src`, `href`) bağlamlarını yerel dosya yollarına haritalandırır. Klonlanan web sitesi, internet bağlantısı tamamen kesik olsa bile (offline) lokalde kusursuz çalışır.
-* **📸 Gelişmiş Medya & Lazy-Load Desteği:** Tembel yükleme (`data-src`, `data-lazy-src`) ve responsive görsel senaryolarını (`srcset`) parse ederek, ekrana kaydırılmadan yüklenmeyen gizli medyaları bile tespit edip indirir.
-* **🛡️ Güvenli Dosya Adı Yönetimi (Path Traversal Protection):** URL parametrelerini ve geçersiz karakterleri Regex (Düzenli İfadeler) ile temizler. Windows/Linux dosya sistemlerinde "Geçersiz dosya adı" hatalarını önler ve Directory Traversal (Dizin Geçişi) zafiyetlerine karşı güvenli mimari sağlar.
-* **📦 Tekilleştirme (Deduplication):** Mükerrer dosyaları hafızasında analiz ederek mükemmel optimizasyon sağlar. Aynı CSS veya görsel kaynak kodda yüzlerce kez geçse bile diske yalnızca 1 kez indirilir.
-* **🕵️‍♂️ Anti-Bot & Tarayıcı Kimliği (Stealth Headers):** `requests.Session()` üzerinden gerçekçi `User-Agent`, `Accept-Language` ve `Referer` başlıkları enjekte ederek Cloudflare veya basit Web Uygulaması Güvenlik Duvarı (WAF) engellemelerini bypass eder.
-* **🛠️ Endüstriyel Hata Yönetimi & Loglama:** Yerleşik `logging` modülü kullanır. 404 (Bulunamadı) veya Timeout (Zaman Aşımı) hatalarında sistemin çökmesini (crash) engelleyerek asenkron akışı bozmadan çalışmaya devam eder.
-* **📂 Otomatik Klasör Hiyerarşisi:** İndirilen verileri yapılandırılmış bir düzende saklar: `assets/css`, `assets/js`, `assets/images`, `assets/fonts`.
-* **✍️ Otomatik İmza Enjeksiyonu (Signature Injection):** Klonlanan DOM yapısının en altına (`</body>` öncesi) CSS tabanlı, buzlu cam efektli (`backdrop-filter`) ve hover animasyonlu özel bir geliştirici imzası enjekte eder.
+---
 
-## 🛠️ Teknik Gereksinimler & Bağımlılıklar
+## ✨ Features
 
-Projenin kararlı çalışması için aşağıdaki Python kütüphaneleri kullanılmaktadır:
-* **Playwright** (Dinamik DOM rendering için)
-* **BeautifulSoup4** (HTML parsing süreçleri için)
-* **Requests** (Senkron asset transferleri için)
+- **🌐 Dynamic JS Rendering:** Uses Playwright to execute JavaScript and wait for `networkidle`, ensuring React, Vue, or Next.js sites are fully rendered before cloning.
+- **⚡ Concurrent Downloads:** Utilizes `ThreadPoolExecutor` to download up to 12 assets simultaneously, drastically reducing cloning time.
+- **🔗 Smart URL Rewriting:** Automatically rewrites `src`, `href`, and even internal CSS `url()` references to point to local relative paths.
+- **🖼️ Advanced Media Support:** Detects and downloads Lazy-Loaded images (`data-src`), responsive `srcset` images, videos, audio, and Open Graph meta images.
+- **🛡️ Graceful Fallback:** If Playwright is blocked or fails, the tool seamlessly falls back to standard `requests` without crashing.
+- **📂 Intelligent Asset Management:** Organizes files into structured directories (`css`, `js`, `images`, `fonts`, `external`) and sanitizes filenames to prevent OS errors.
+- **🛑 Graceful Shutdown:** Safely handles `Ctrl+C` interruptions without corrupting files or leaving messy stack traces.
 
-### Kurulum
+---
 
-1. Depoyu klonlayın:
+## 📦 Installation
+
 ```bash
-git clone https://github.com
+git clone https://github.com/mucahidbalci/PyWebClone.git
 cd PyWebClone
-```
-
-2. Gerekli kütüphaneleri ve Playwright tarayıcı çekirdeklerini yükleyin:
-```bash
 pip install -r requirements.txt
-playwright install
+playwright install chromium
 ```
 
-### Kullanım
+---
 
-Aracı terminal üzerinden başlatın ve hedef URL'yi girin:
+## 💻 Usage
+
+Run the script from your terminal:
+
 ```bash
 python main.py
 ```
 
-## ⚠️ Yasal Uyarı / Disclaimer
+The tool will prompt you for a URL:
 
-**TR:** Bu yazılım tamamen eğitim, yerel yedekleme, OSINT analizleri ve yasal sızma testleri süreçlerinde statik kaynak kod incelemesi yapmak amacıyla geliştirilmiştir. Bu aracın izinsiz veya telif hakkı içeren web siteleri üzerinde kötü amaçlı kullanımı tamamen kullanıcının sorumluluğundadır. Geliştirici (Mücahid Balcı), oluşabilecek yasal sorunlardan veya kötüye kullanımlardan dolayı hiçbir sorumluluk kabul etmez.
+```text
+UYARI: Sadece eğitim, arşivleme ve izinli test amaçlıdır.
 
-**EN:** This software is developed strictly for educational purposes, local backups, OSINT forensics, and legal penetration testing to perform static source code analysis. Any unauthorized or malicious use of this tool on copyrighted or unauthorized websites is entirely the responsibility of the user. The developer (Mücahid Balcı) assumes no liability and is not responsible for any misuse or damage caused by this program.
+Hedef siteyi girin: https://example.com
+```
 
-## 👤 Geliştirici / Developer
+It will automatically create a folder named `klon_example.com` and populate it with the fully functional, offline-ready website.
 
-* **Mücahid Balcı** - *Genç Girişimci & Siber Güvenlik Araştırmacısı*
-* **GitHub:** [@mucahhtd](https://github.com)
-* **Web Sitesi:** [mucahidinc.freedev.app](https://freedev.app)
+---
+
+## 📂 Output Structure
+
+```text
+klon_example.com/
+│
+├── index.html
+└── assets/
+    ├── css/
+    ├── js/
+    ├── images/
+    ├── fonts/
+    ├── icons/
+    ├── media/
+    └── external/
+```
+
+---
+
+## ⚠️ Legal & Ethical Disclaimer
+
+This tool is developed strictly for **educational purposes, personal web archiving, and authorized security testing**.
+
+- Do not use this tool to clone websites you do not own or have explicit permission to test.
+- Respect `robots.txt` and website Terms of Service.
+- The author is not responsible for any misuse of this software.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Core:** Python 3
+- **Browser Automation:** Playwright (Chromium)
+- **HTML Parsing:** BeautifulSoup4
+- **Networking:** Requests, ThreadPoolExecutor
+- **URL Handling:** urllib.parse, re (Regex)
+
+---
+
+> **Powered by [mucahidbalci](https://mucahidbalci.github.io)**
+> *Built for performance, reliability, and clean architecture.*
